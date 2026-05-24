@@ -31,7 +31,7 @@ class AuthRepository(
     suspend fun registerUser(
         username: String,
         phone: String,
-        email: String?,
+        email: String,
         passwordHash: String
     ): Resource<User> = withContext(Dispatchers.IO) {
         var createdUid: String? = null
@@ -39,60 +39,44 @@ class AuthRepository(
             checkFirebase(context)
             
             val normalizedUsername = username.trim().lowercase()
-            val normalizedPhone = phone.replace(Regex("[^0-9+]"), "")
+            val cleanEmail = email.trim()
+            val cleanPhone = phone.trim()
             
-            // Check if username exists
-            val usernameSnap = kotlinx.coroutines.withTimeoutOrNull(15000L) { firestore.collection("users").whereEqualTo("normalizedUsername", normalizedUsername).get().await() }
-            if (usernameSnap == null) return@withContext Resource.Error("Network timeout while checking username.")
-            if (!usernameSnap.isEmpty) {
-                return@withContext Resource.Error("Username already taken")
+            // 1. Firebase Create
+            val authResult = kotlinx.coroutines.withTimeoutOrNull(15000L) { 
+                auth.createUserWithEmailAndPassword(cleanEmail, passwordHash).await() 
             }
+            if (authResult == null) return@withContext Resource.Error("تحقق من اتصالك بالإنترنت")
             
-            // Check if phone exists
-            val phoneSnap = kotlinx.coroutines.withTimeoutOrNull(10000L) { firestore.collection("users").whereEqualTo("phoneNumber", normalizedPhone).get().await() }
-            if (phoneSnap == null) return@withContext Resource.Error("Network timeout while checking phone.")
-            if (!phoneSnap.isEmpty) {
-                return@withContext Resource.Error("Phone number already registered")
-            }
-            
-            val authEmail = if (!email.isNullOrBlank()) email.trim() else "$normalizedUsername@wasetplus.com"
-            
-            // Create user
-            val authResult = kotlinx.coroutines.withTimeoutOrNull(15000L) { auth.createUserWithEmailAndPassword(authEmail, passwordHash).await() }
-            if (authResult == null) return@withContext Resource.Error("Network timeout while creating user.")
-            
-            val uid = authResult.user?.uid ?: return@withContext Resource.Error("Failed to create user account.")
+            val uid = authResult.user?.uid ?: return@withContext Resource.Error("فشل إنشاء الحساب")
             createdUid = uid
+            
+            // 2. Save to Firestore
+            val userMap = hashMapOf(
+                "uid" to uid,
+                "username" to username.trim(),
+                "normalizedUsername" to normalizedUsername,
+                "phone" to cleanPhone,
+                "email" to cleanEmail,
+                "role" to "buyer",
+                "createdAt" to System.currentTimeMillis()
+            )
+            
+            kotlinx.coroutines.withTimeoutOrNull(15000L) { 
+                firestore.collection("users").document(uid).set(userMap).await() 
+            } ?: throw Exception("Network failure during Firestore setup")
             
             val user = User(
                 uid = uid,
-                username = username,
+                username = username.trim(),
                 normalizedUsername = normalizedUsername,
-                phoneNumber = normalizedPhone,
-                email = email,
-                role = "customer",
+                phoneNumber = cleanPhone,
+                email = cleanEmail,
+                role = "buyer",
                 profileImage = null,
                 isVerified = false,
-                createdAt = System.currentTimeMillis()
+                createdAt = userMap["createdAt"] as Long
             )
-            
-            // Save to Firestore
-            val userMap = hashMapOf(
-                "uid" to user.uid,
-                "username" to user.username,
-                "normalizedUsername" to user.normalizedUsername,
-                "phoneNumber" to user.phoneNumber,
-                "email" to user.email,
-                "role" to user.role,
-                "profileImage" to user.profileImage,
-                "isVerified" to user.isVerified,
-                "createdAt" to user.createdAt
-            )
-            
-            val setTask = kotlinx.coroutines.withTimeoutOrNull(15000L) { firestore.collection("users").document(uid).set(userMap).await(); true }
-            if (setTask == null) {
-                throw Exception("Network timeout while saving user data.")
-            }
             
             userDao.insertUser(user)
             return@withContext Resource.Success(user)
@@ -100,22 +84,16 @@ class AuthRepository(
         } catch (e: Exception) {
             if (e is kotlinx.coroutines.CancellationException) throw e
             
-            // Rollback auth if we created the user but failed later
             if (createdUid != null) {
-                try {
-                    auth.currentUser?.delete()?.await()
-                } catch (rollbackEx: Exception) {
-                    // Ignore rollback errors to return the primary error
-                }
+                try { auth.currentUser?.delete()?.await() } catch (ex: Exception) {}
             }
             
-            val message = e.message ?: "An error occurred during registration."
+            val message = e.message?.lowercase() ?: ""
             val displayMessage = when {
-                e is kotlinx.coroutines.TimeoutCancellationException -> "Network timeout. Please check your internet connection."
-                message.contains("email-already-in-use") -> "Username or Email is already registered. Please login instead."
-                message.contains("weak-password") -> "Password is too weak. Please use a stronger password."
-                message.contains("PERMISSION_DENIED") -> "Permission Denied. Could not save user data."
-                else -> message
+                e is kotlinx.coroutines.TimeoutCancellationException || message.contains("network") -> "تحقق من اتصالك بالإنترنت"
+                message.contains("email-already-in-use") -> "اسم المستخدم مسجل بالفعل"
+                message.contains("weak-password") -> "كلمة المرور ضعيفة جداً"
+                else -> "حدث خطأ أثناء التسجيل: ${e.localizedMessage}"
             }
             return@withContext Resource.Error(displayMessage)
         }
@@ -124,53 +102,27 @@ class AuthRepository(
     suspend fun loginUser(identifier: String, password: String): Resource<User> = withContext(Dispatchers.IO) {
         try {
             checkFirebase(context)
-            val cleanIdentifier = identifier.trim().lowercase()
-            var resolvedEmail: String? = null
+            val loginEmail = identifier.trim()
             
-            // Is it an email?
-            if (cleanIdentifier.contains("@")) {
-                resolvedEmail = cleanIdentifier
-            } else {
-                // Try username
-                val usernameSnap = kotlinx.coroutines.withTimeoutOrNull(5000L) { firestore.collection("users").whereEqualTo("normalizedUsername", cleanIdentifier).get().await() }
-                if (usernameSnap != null && !usernameSnap.isEmpty) {
-                    resolvedEmail = usernameSnap.documents[0].getString("email") 
-                        ?: "$cleanIdentifier@wasetplus.com"
-                } else {
-                    // Try phone
-                    val cleanPhone = cleanIdentifier.replace(Regex("[^0-9+]"), "")
-                    if (cleanPhone.isNotEmpty()) {
-                        val phoneSnap = kotlinx.coroutines.withTimeoutOrNull(5000L) { firestore.collection("users").whereEqualTo("phoneNumber", cleanPhone).get().await() }
-                        if (phoneSnap != null && !phoneSnap.isEmpty) {
-                            val normalizedUser = phoneSnap.documents[0].getString("normalizedUsername") ?: ""
-                            resolvedEmail = phoneSnap.documents[0].getString("email") 
-                                ?: "$normalizedUser@wasetplus.com"
-                        }
-                    }
-                }
+            val signResult = kotlinx.coroutines.withTimeoutOrNull(15000L) { 
+                auth.signInWithEmailAndPassword(loginEmail, password).await() 
             }
+            if (signResult == null) return@withContext Resource.Error("تحقق من اتصالك بالإنترنت")
             
-            if (resolvedEmail == null) {
-                return@withContext Resource.Error("Invalid credentials")
-            }
+            val uid = auth.currentUser?.uid ?: return@withContext Resource.Error("المستخدم غير موجود")
+            val docSnap = firestore.collection("users").document(uid).get().await()
             
-            val signResult = kotlinx.coroutines.withTimeoutOrNull(15000L) { auth.signInWithEmailAndPassword(resolvedEmail, password).await() }
-            if (signResult == null) return@withContext Resource.Error("Network Timeout.")
-            val uid = auth.currentUser?.uid ?: return@withContext Resource.Error("Authentication failed")
-            
-            val docSnap = kotlinx.coroutines.withTimeoutOrNull(10000L) { firestore.collection("users").document(uid).get().await() }
-            if (docSnap == null) return@withContext Resource.Error("Network Timeout.")
             if (!docSnap.exists()) {
-                return@withContext Resource.Error("User data not found")
+                return@withContext Resource.Error("المستخدم غير موجود")
             }
             
             val user = User(
                 uid = uid,
                 username = docSnap.getString("username") ?: "",
-                normalizedUsername = docSnap.getString("normalizedUsername") ?: "",
-                phoneNumber = docSnap.getString("phoneNumber") ?: "",
+                normalizedUsername = (docSnap.getString("username") ?: "").lowercase(),
+                phoneNumber = docSnap.getString("phone") ?: "",
                 email = docSnap.getString("email"),
-                role = docSnap.getString("role") ?: "customer",
+                role = docSnap.getString("role") ?: "buyer",
                 profileImage = docSnap.getString("profileImage"),
                 isVerified = docSnap.getBoolean("isVerified") ?: false,
                 createdAt = docSnap.getLong("createdAt") ?: System.currentTimeMillis()
@@ -178,13 +130,15 @@ class AuthRepository(
             
             userDao.insertUser(user)
             return@withContext Resource.Success(user)
+            
         } catch (e: Exception) {
             if (e is kotlinx.coroutines.CancellationException) throw e
             val message = e.message?.lowercase() ?: ""
             val displayMessage = when {
-                e is kotlinx.coroutines.TimeoutCancellationException -> "Network timeout. Please check your internet connection."
-                message.contains("auth/invalid-credential") || message.contains("not found") -> "Invalid credentials"
-                else -> "Error: \${e.message}"
+                e is kotlinx.coroutines.TimeoutCancellationException || message.contains("network") -> "تحقق من اتصالك بالإنترنت"
+                message.contains("user-not-found") || message.contains("no user record") || message.contains("not found") -> "المستخدم غير موجود"
+                message.contains("wrong-password") || message.contains("invalid-credential") || message.contains("invalid_credential") -> "كلمة المرور غير صحيحة"
+                else -> "حدث خطأ أثناء تسجيل الدخول"
             }
             return@withContext Resource.Error(displayMessage)
         }

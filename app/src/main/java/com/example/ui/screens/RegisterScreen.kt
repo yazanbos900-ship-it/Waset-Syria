@@ -86,7 +86,7 @@ fun RegisterScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Create Account",
+                        text = "إنشاء حساب جديد",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -95,7 +95,7 @@ fun RegisterScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     
                     Text(
-                        text = "Join the marketplace",
+                        text = "انضم إلى السوق الآن",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -110,11 +110,10 @@ fun RegisterScreen(
                             username = it
                             viewModel.checkUsername(it)
                         },
-                        label = { Text("Username") },
+                        label = { Text("اسم المستخدم") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true,
-                        isError = registerState is Resource.Error && (registerState as Resource.Error).message.contains("Username", ignoreCase = true) || (availability is Resource.Success && !(availability as Resource.Success).data),
                         trailingIcon = {
                             when (availability) {
                                 is Resource.Loading -> {
@@ -133,7 +132,7 @@ fun RegisterScreen(
                         },
                         supportingText = {
                             if (availability is Resource.Success && !(availability as Resource.Success).data) {
-                                Text("Username is already taken", color = MaterialTheme.colorScheme.error)
+                                Text("اسم المستخدم مأخوذ بالفعل", color = MaterialTheme.colorScheme.error)
                             }
                         }
                     )
@@ -143,23 +142,21 @@ fun RegisterScreen(
                     OutlinedTextField(
                         value = phone,
                         onValueChange = { phone = it },
-                        label = { Text("Phone Number") },
+                        label = { Text("رقم الهاتف") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        singleLine = true,
-                        isError = registerState is Resource.Error && (registerState as Resource.Error).message.contains("Phone", ignoreCase = true)
+                        singleLine = true
                     )
                     
                     Spacer(modifier = Modifier.height(16.dp))
-                    
+
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
-                        label = { Text("Email (Optional)") },
+                        label = { Text("البريد الإلكتروني") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        singleLine = true,
-                        isError = registerState is Resource.Error && (registerState as Resource.Error).message.contains("Email", ignoreCase = true)
+                        singleLine = true
                     )
                     
                     Spacer(modifier = Modifier.height(16.dp))
@@ -167,12 +164,11 @@ fun RegisterScreen(
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        label = { Text("Password") },
+                        label = { Text("كلمة المرور") },
                         visualTransformation = PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        singleLine = true,
-                        isError = registerState is Resource.Error && (registerState as Resource.Error).message.contains("Password", ignoreCase = true)
+                        singleLine = true
                     )
                     
                     Spacer(modifier = Modifier.height(16.dp))
@@ -180,12 +176,11 @@ fun RegisterScreen(
                     OutlinedTextField(
                         value = confirmPassword,
                         onValueChange = { confirmPassword = it },
-                        label = { Text("Confirm Password") },
+                        label = { Text("تأكيد كلمة المرور") },
                         visualTransformation = PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        singleLine = true,
-                        isError = registerState is Resource.Error && (registerState as Resource.Error).message.contains("match", ignoreCase = true)
+                        singleLine = true
                     )
                     
                     Spacer(modifier = Modifier.height(32.dp))
@@ -206,7 +201,7 @@ fun RegisterScreen(
                             )
                         } else {
                             Text(
-                                text = "Create Account",
+                                text = "تسجيل",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
@@ -219,7 +214,7 @@ fun RegisterScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Already have an account?",
+                            text = "لديك حساب بالفعل؟",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -228,7 +223,7 @@ fun RegisterScreen(
                             onNavigateToLogin()
                         }) {
                             Text(
-                                text = "Login",
+                                text = "تسجيل الدخول",
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary

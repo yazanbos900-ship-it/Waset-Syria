@@ -33,7 +33,7 @@ val onboardingPages = listOf(
         imageUrl = "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=400&auto=format&fit=crop"
     ),
     OnboardingPage(
-        title = "Everything in One Marketplace",
+        title = "Everything in WasetPlus",
         description = "Browse categories, compare products, and shop easily from multiple stores.",
         imageUrl = "https://images.unsplash.com/photo-1542010589005-d1eabd394960?q=80&w=400&auto=format&fit=crop"
     ),

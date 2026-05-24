@@ -99,14 +99,18 @@ fun MainNavigation() {
                         }
                     },
                     onNavigateToRegister = {
-                        navController.navigate("register")
+                        navController.navigate("register") {
+                            popUpTo("login") { inclusive = true }
+                        }
                     }
                 )
             }
             composable("register") {
                 com.example.ui.screens.RegisterScreen(
                     onNavigateToLogin = {
-                        navController.navigateUp()
+                        navController.navigate("login") {
+                            popUpTo("register") { inclusive = true }
+                        }
                     },
                     onNavigateToHome = {
                         navController.navigate(Screen.Home.route) {

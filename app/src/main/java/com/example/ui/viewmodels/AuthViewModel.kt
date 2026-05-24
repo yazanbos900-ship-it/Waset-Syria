@@ -51,45 +51,44 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
     fun register(username: String, phone: String, email: String, pass1: String, pass2: String) {
         // Validation Layer
-        if (username.isBlank() || phone.isBlank() || pass1.isBlank() || pass2.isBlank()) {
-            _registerState.value = Resource.Error("Please fill in all required fields")
+        if (username.isBlank() || phone.isBlank() || email.isBlank() || pass1.isBlank() || pass2.isBlank()) {
+            _registerState.value = Resource.Error("الرجاء ملء جميع الحقول")
             return
         }
         
         if (username.contains(" ")) {
-            _registerState.value = Resource.Error("Username cannot contain spaces")
-            return
-        }
-
-        if (pass1 != pass2) {
-            _registerState.value = Resource.Error("Passwords do not match")
-            return
-        }
-
-        if (pass1.length < 6) {
-            _registerState.value = Resource.Error("Password must be at least 6 characters")
-            return
-        }
-
-        val cleanPhone = phone.replace(Regex("[^0-9+]"), "")
-        if (cleanPhone.length < 10 || (!cleanPhone.startsWith("+9639") && !cleanPhone.startsWith("09") && !cleanPhone.startsWith("9639"))) {
-            _registerState.value = Resource.Error("Please enter a valid Syrian phone number (e.g. 09... or +9639...)")
+            _registerState.value = Resource.Error("اسم المستخدم لا يمكن أن يحتوي على مسافات")
             return
         }
 
         val emailRegex = Regex("^[A-Za-z0-9+_.-]+@(.+)\$")
-        if (email.isNotBlank() && !emailRegex.matches(email)) {
-             _registerState.value = Resource.Error("Invalid email format")
+        if (!emailRegex.matches(email.trim())) {
+            _registerState.value = Resource.Error("الرجاء إدخال بريد إلكتروني صحيح")
+            return
+        }
+
+        if (pass1 != pass2) {
+            _registerState.value = Resource.Error("كلمات المرور غير متطابقة")
+            return
+        }
+
+        if (pass1.length < 6) {
+            _registerState.value = Resource.Error("يجب أن تكون كلمة المرور 6 أحرف على الأقل")
+            return
+        }
+
+        val cleanPhone = phone.trim()
+        if (cleanPhone.length < 9) {
+            _registerState.value = Resource.Error("يرجى إدخال رقم هاتف صحيح")
             return
         }
 
         _registerState.value = Resource.Loading
         
         viewModelScope.launch {
-            val result = repository.registerUser(username, cleanPhone, email, pass1)
+            val result = repository.registerUser(username.trim(), cleanPhone, email.trim(), pass1)
             when (result) {
                 is Resource.Success -> {
-                    // Successful registration
                     _registerState.value = Resource.Success(Unit)
                 }
                 is Resource.Error -> {
@@ -102,14 +101,14 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     
     fun login(identifier: String, pass: String) {
         if (identifier.isBlank() || pass.isBlank()) {
-            _loginState.value = Resource.Error("Please enter your credentials")
+            _loginState.value = Resource.Error("الرجاء إدخال بيانات الدخول")
             return
         }
         
         _loginState.value = Resource.Loading
         
         viewModelScope.launch {
-            val result = repository.loginUser(identifier, pass)
+            val result = repository.loginUser(identifier.trim(), pass)
             when (result) {
                 is Resource.Success -> _loginState.value = Resource.Success(Unit)
                 is Resource.Error -> _loginState.value = Resource.Error(result.message)

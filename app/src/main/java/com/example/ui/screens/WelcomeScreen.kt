@@ -29,7 +29,7 @@ fun WelcomeScreen(
             Spacer(modifier = Modifier.weight(1f))
             
             Text(
-                text = "Marketplace",
+                text = "WasetPlus",
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground

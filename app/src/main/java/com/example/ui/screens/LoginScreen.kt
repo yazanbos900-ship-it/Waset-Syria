@@ -83,7 +83,7 @@ fun LoginScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Welcome Back",
+                        text = "مرحباً بعودتك",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -92,7 +92,7 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     
                     Text(
-                        text = "Sign in to continue",
+                        text = "سجل دخولك للمتابعة",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -102,7 +102,7 @@ fun LoginScreen(
                     OutlinedTextField(
                         value = username,
                         onValueChange = { username = it },
-                        label = { Text("Username or Phone") },
+                        label = { Text("البريد الإلكتروني") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true,
@@ -114,7 +114,7 @@ fun LoginScreen(
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        label = { Text("Password") },
+                        label = { Text("كلمة المرور") },
                         visualTransformation = PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
@@ -129,7 +129,7 @@ fun LoginScreen(
                         modifier = Modifier.align(Alignment.End)
                     ) {
                         Text(
-                            text = "Forgot password?",
+                            text = "هل نسيت كلمة المرور؟",
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -152,7 +152,7 @@ fun LoginScreen(
                             )
                         } else {
                             Text(
-                                text = "Login",
+                                text = "تسجيل الدخول",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
@@ -165,7 +165,7 @@ fun LoginScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Don't have an account?",
+                            text = "ليس لديك حساب؟",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -174,7 +174,7 @@ fun LoginScreen(
                             onNavigateToRegister()
                         }) {
                             Text(
-                                text = "Create Account",
+                                text = "إنشاء حساب جديد",
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
