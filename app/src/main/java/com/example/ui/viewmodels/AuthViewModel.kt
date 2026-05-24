@@ -72,8 +72,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         val cleanPhone = phone.replace(Regex("[^0-9+]"), "")
-        if (cleanPhone.length < 7) {
-            _registerState.value = Resource.Error("Please enter a valid phone number")
+        if (cleanPhone.length < 10 || (!cleanPhone.startsWith("+9639") && !cleanPhone.startsWith("09") && !cleanPhone.startsWith("9639"))) {
+            _registerState.value = Resource.Error("Please enter a valid Syrian phone number (e.g. 09... or +9639...)")
             return
         }
 

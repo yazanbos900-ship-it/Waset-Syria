@@ -44,6 +44,7 @@ fun LoginScreen(
                         message = (loginState as Resource.Error).message
                     )
                 }
+                viewModel.resetStates()
             }
             else -> {}
         }

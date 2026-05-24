@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:563259740853:android:1a6757ab83ed557b19e4fc",
         "android_client_info": {
-          "package_name": "WasetPlus.com"
+          "package_name": "com.wasetplus.app"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "563259740853-9mtbem13q6nq3d0ufujt87kov214dtht.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "WasetPlus.com",
+            "package_name": "com.wasetplus.app",
             "certificate_hash": "a2fe787bae959606c74dfa816cacbd71f913bfc2"
           }
         },

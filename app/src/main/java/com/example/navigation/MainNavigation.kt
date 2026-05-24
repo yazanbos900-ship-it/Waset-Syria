@@ -107,6 +107,11 @@ fun MainNavigation() {
                 com.example.ui.screens.RegisterScreen(
                     onNavigateToLogin = {
                         navController.navigateUp()
+                    },
+                    onNavigateToHome = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo("welcome") { inclusive = true }
+                        }
                     }
                 )
             }

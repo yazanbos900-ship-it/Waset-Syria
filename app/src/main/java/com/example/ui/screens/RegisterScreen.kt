@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun RegisterScreen(
     onNavigateToLogin: () -> Unit,
+    onNavigateToHome: () -> Unit,
     viewModel: AuthViewModel = viewModel(
         factory = AuthViewModel.Factory(LocalContext.current.applicationContext as android.app.Application)
     )
@@ -38,7 +39,7 @@ fun RegisterScreen(
         when (registerState) {
             is Resource.Success -> {
                 viewModel.resetStates()
-                onNavigateToLogin()
+                onNavigateToHome()
             }
             is Resource.Error -> {
                 coroutineScope.launch {
@@ -46,6 +47,7 @@ fun RegisterScreen(
                         message = (registerState as Resource.Error).message
                     )
                 }
+                viewModel.resetStates() // Clear error state so snackbar can be shown again if it happens again
             }
             else -> {}
         }
