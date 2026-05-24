@@ -30,17 +30,17 @@ val onboardingPages = listOf(
     OnboardingPage(
         title = "Shop from Multiple Vendors",
         description = "Discover thousands of products from trusted sellers in one place.",
-        imageUrl = "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1000&auto=format&fit=crop"
+        imageUrl = "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=400&auto=format&fit=crop"
     ),
     OnboardingPage(
         title = "Everything in One Marketplace",
         description = "Browse categories, compare products, and shop easily from multiple stores.",
-        imageUrl = "https://images.unsplash.com/photo-1542010589005-d1eabd394960?q=80&w=1000&auto=format&fit=crop"
+        imageUrl = "https://images.unsplash.com/photo-1542010589005-d1eabd394960?q=80&w=400&auto=format&fit=crop"
     ),
     OnboardingPage(
         title = "Fast, Secure & Easy Shopping",
         description = "Order from your favorite vendors and track everything from one app.",
-        imageUrl = "https://images.unsplash.com/photo-1556740758-90de374c12ad?q=80&w=1000&auto=format&fit=crop"
+        imageUrl = "https://images.unsplash.com/photo-1556740758-90de374c12ad?q=80&w=400&auto=format&fit=crop"
     )
 )
 
@@ -66,7 +66,7 @@ fun OnboardingScreen(
                     .weight(1f)
                     .fillMaxWidth()
             ) { page ->
-                val onboardingPage = onboardingPages[page]
+                val onboardingPage = onboardingPages.getOrNull(page) ?: return@HorizontalPager
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
