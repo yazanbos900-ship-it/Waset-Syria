@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "563259740853",
+    "firebase_url": "https://wasetplus-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "wasetplus",
     "storage_bucket": "wasetplus.firebasestorage.app"
   },
